@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upgrade to Premium — StudyFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:    #0066f5;
+      --brand-dk: #0052cc;
+      --success:  #00b37e;
+      --danger:   #e03137;
+      --border:   #e5e9f0;
+      --bg:       #f5f6fa;
+      --white:    #ffffff;
+      --text:     #1a202c;
+      --muted:    #6b7280;
+      --light:    #f9fafb;
+      --sc-green: #00a859;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      color: var(--text);
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar-brand .brand-dot {
+      width: 28px;
+      height: 28px;
+      background: var(--brand);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .topbar-brand .brand-dot i { color: #fff; font-size: 13px; }
+
+    .topbar-brand span {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .secure-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .secure-badge i { color: var(--success); font-size: 11px; }
+
+    /* ── Card ── */
+    .card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+
+    /* ── Plan header ── */
+    .plan-header {
+      padding: 24px 28px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .plan-header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .plan-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .plan-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .plan-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .plan-price-block { text-align: right; }
+
+    .plan-currency {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--brand);
+      vertical-align: top;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    .plan-amount {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--brand);
+      line-height: 1;
+    }
+
+    .plan-period {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .feature-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #f0f4ff;
+      color: var(--brand);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .pill i { font-size: 10px; }
+
+    .section {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-of-type { border-bottom: none; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+
+    /* ── SmartCash bank card ── */
+    .bank-card {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .bank-identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sc-logo {
+      width: 42px;
+      height: 42px;
+      background: var(--sc-green);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sc-logo i { color: #fff; font-size: 18px; }
+
+    .sc-info-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .sc-info-tag {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sc-info-tag i { color: var(--success); font-size: 10px; }
+
+    .detail-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-row:last-child { border-bottom: none; }
+
+    .detail-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .detail-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-value.amount-val {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--brand);
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--brand);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .copy-btn:hover { background: #f0f4ff; }
+    .copy-btn.copied { background: #f0fdf4; border-color: var(--success); color: var(--success); }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .step-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: #f0f4ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-icon i { color: var(--brand); font-size: 13px; }
+
+    .step-text { font-size: 13px; color: var(--muted); line-height: 1.5; padding-top: 5px; }
+    .step-text strong { color: var(--text); }
+
+    /* ── Action buttons ── */
+    .actions {
+      padding: 20px 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--brand);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0,102,245,0.25);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--brand-dk);
+      box-shadow: 0 4px 14px rgba(0,102,245,0.35);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: var(--light);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover { background: #f0f4ff; color: var(--brand); border-color: #c7d9ff; }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #receipt-page, #result-page { display: none; }
+
+    .page-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--brand);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .page-nav:hover { background: var(--light); }
+    .page-nav i { font-size: 12px; }
+
+    .receipt-header { padding: 20px 28px 16px; border-bottom: 1px solid var(--border); }
+    .receipt-header h2 { font-size: 18px; font-weight: 700; }
+    .receipt-header p { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+    .upload-zone {
+      margin: 20px 28px;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.18s;
+      position: relative;
+      background: var(--light);
+    }
+
+    .upload-zone:hover, .upload-zone.drag { border-color: var(--brand); background: #f0f4ff; }
+
+    .upload-zone input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon-wrap {
+      width: 56px;
+      height: 56px;
+      background: #e8efff;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+    }
+
+    .upload-icon-wrap i { font-size: 22px; color: var(--brand); }
+
+    .upload-zone h3 { font-size: 14px; font-weight: 600; color: var(--text); }
+    .upload-zone p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .preview-img {
+      width: 100%;
+      max-height: 240px;
+      object-fit: contain;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .ai-notice {
+      margin: 0 28px 16px;
+      background: #f0f9ff;
+      border: 1px solid #bfdfff;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .ai-notice i { color: var(--brand); font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+    .ai-notice span { font-size: 12.5px; color: #1e4fac; line-height: 1.5; }
+    .ai-notice strong { font-weight: 600; }
+
+    .result-card {
+      padding: 48px 28px 40px;
+      text-align: center;
+    }
+
+    .result-icon-wrap {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .result-icon-wrap.success { background: #f0fdf4; }
+    .result-icon-wrap.error   { background: #fff0f0; }
+
+    .result-icon-wrap i { font-size: 30px; }
+    .result-icon-wrap.success i { color: var(--success); }
+    .result-icon-wrap.error   i { color: var(--danger); }
+
+    .result-card h2 { font-size: 20px; font-weight: 800; color: var(--text); }
+    .result-card p  { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+
+    .detected-box {
+      margin: 18px 0;
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: left;
+    }
+
+    .detected-box .det-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+
+    .det-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text);
+      padding: 4px 0;
+    }
+
+    .det-row i { color: var(--muted); font-size: 12px; width: 14px; }
+
+    .result-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .footer {
+      margin-top: 18px;
+      font-size: 12px;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .footer i { font-size: 11px; color: var(--success); }
+  </style>
+</head>
+<body>
+
+<div id="payment-page">
+
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-dot"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span>StudyFlow</span>
+    </div>
+    <div class="secure-badge">
+      <i class="fa-solid fa-shield-halved"></i>
+      Secured
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="plan-header">
+      <div class="plan-header-top">
+        <div>
+          <div class="plan-label">Plan</div>
+          <div class="plan-name">Premium Access</div>
+          <div class="plan-desc">Unlimited AI · No daily limits</div>
+        </div>
+        <div class="plan-price-block">
+          <div>
+            <span class="plan-currency">₦</span>
+            <span class="plan-amount">1,000</span>
+          </div>
+          <div class="plan-period">30-day access</div>
+        </div>
+      </div>
+      <div class="feature-pills">
+        <span class="pill"><i class="fa-solid fa-bolt"></i> Unlimited Summaries</span>
+        <span class="pill"><i class="fa-solid fa-chalkboard-user"></i> AI Teacher</span>
+        <span class="pill"><i class="fa-solid fa-cards-blank"></i> Flashcards</span>
+        <span class="pill"><i class="fa-solid fa-circle-question"></i> Quizzes</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Transfer to</div>
+      <div class="bank-card">
+        <div class="bank-identity">
+          <div class="sc-logo"><i class="fa-solid fa-mobile-screen-button"></i></div>
+          <div>
+            <div class="sc-info-name">SmartCash MFB</div>
+            <div class="sc-info-tag"><i class="fa-solid fa-circle-check"></i> Verified Mobile Bank</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Account Name</div>
+          <div class="detail-value">Ayodele Ganiyu</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Account Number</div>
+          <div class="detail-value">
+            <span id="acct-num">9012834275</span>
+            <button class="copy-btn" id="copy-btn" onclick="copyNumber()">
+              <i class="fa-regular fa-copy"></i> Copy
+            </button>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Bank</div>
+          <div class="detail-value">SmartCash MFB</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Amount</div>
+          <div class="detail-value amount-val">₦ 1,000.00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">How it works</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon"><i class="fa-solid fa-paper-plane"></i></div>
+          <div class="step-text">Transfer <strong>exactly ₦1,000</strong> to the SmartCash account above using any bank app</div>
+        </div>
+        <div class="step">
+          <div class="step-icon"><i class="fa-solid fa-camera"></i></div>
+          <div class="step-text">Take a clear <strong>screenshot</strong> of your transfer receipt</div>
+        </div>
+        <div class="step">
+          <div class="step-icon"><i class="fa-solid fa-robot"></i></div>
+          <div class="step-text">Click <strong>"I Have Paid"</strong> — our AI reads and verifies your receipt instantly</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="showReceiptPage()">
+        <i class="fa-solid fa-check"></i> I Have Paid
+      </button>
+      <button class="btn btn-ghost" onclick="handleCancel()">
+        <i class="fa-solid fa-xmark"></i> Cancel
+      </button>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <i class="fa-solid fa-lock"></i>
+    AI-powered receipt verification &mdash; StudyFlow &copy; 2025
+  </div>
+</div>
+
+
+<div id="receipt-page">
+
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-dot"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span>StudyFlow</span>
+    </div>
+    <div class="secure-badge">
+      <i class="fa-solid fa-shield-halved"></i>
+      Secured
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="page-nav" onclick="showPaymentPage()">
+      <i class="fa-solid fa-arrow-left"></i> Back to payment details
+    </div>
+
+    <div class="receipt-header">
+      <h2>Upload Payment Receipt</h2>
+      <p>Upload your transfer screenshot — our AI will verify the ₦1,000 payment to <strong>Ayodele Ganiyu</strong> automatically.</p>
+    </div>
+
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" id="receipt-file" accept="image/jpeg,image/png,image/webp,image/jpg" />
+      <div id="upload-placeholder">
+        <div class="upload-icon-wrap"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+        <h3>Click to upload your screenshot</h3>
+        <p>JPG, PNG or WebP &mdash; max 5 MB</p>
+      </div>
+      <img class="preview-img" id="preview-img" alt="Receipt preview" />
+    </div>
+
+    <div class="ai-notice">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+      <span>AI checks for: <strong>Ayodele Ganiyu</strong> as recipient &nbsp;&middot;&nbsp; <strong>SmartCash MFB</strong> as bank &nbsp;&middot;&nbsp; Amount <strong>₦1,000</strong></span>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="verify-btn" onclick="submitReceipt()" disabled>
+        <i class="fa-solid fa-magnifying-glass"></i> Verify Receipt
+      </button>
+      <button class="btn btn-ghost" onclick="showPaymentPage()">
+        <i class="fa-solid fa-arrow-left"></i> Back
+      </button>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <i class="fa-solid fa-lock"></i>
+    AI-powered receipt verification &mdash; StudyFlow &copy; 2025
+  </div>
+</div>
+
+
+<!-- ────────── PAGE 3: Result ────────── -->
+<div id="result-page">
+
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-dot"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span>StudyFlow</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="result-card">
+      <div class="result-icon-wrap" id="result-icon-wrap">
+        <i id="result-icon-fa"></i>
+      </div>
+      <h2 id="result-title"></h2>
+      <p id="result-msg"></p>
+      <div class="detected-box" id="detected-box" style="display:none;">
+        <div class="det-title">What AI detected in your receipt</div>
+        <div class="det-row"><i class="fa-solid fa-user"></i><span id="det-name"></span></div>
+        <div class="det-row"><i class="fa-solid fa-building-columns"></i><span id="det-bank"></span></div>
+        <div class="det-row"><i class="fa-solid fa-naira-sign"></i><span id="det-amount"></span></div>
+      </div>
+      <div class="result-actions" id="result-actions"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <i class="fa-solid fa-lock"></i>
+    StudyFlow &copy; 2025
+  </div>
+</div>
+
+
+<script>
+  // ── Token resolution ────────────────────────────────────────────────────────
+  function getToken() {
+    // 1. URL query param (?token=xxx) — most reliable for payment pages
+    const urlToken = new URLSearchParams(window.location.search).get('token');
+    if (urlToken) return urlToken;
+    // 2. localStorage / sessionStorage (if app already stored it)
+    return localStorage.getItem('studyflow_access_token')
+        || localStorage.getItem('accessToken')
+        || localStorage.getItem('token')
+        || sessionStorage.getItem('studyflow_access_token')
+        || sessionStorage.getItem('accessToken')
+        || sessionStorage.getItem('token')
+        || null;
+  }
+
+  // ── Page switching ──────────────────────────────────────────────────────────
+  const PAGES = ['payment-page', 'receipt-page', 'result-page'];
+  function showPage(id) {
+    PAGES.forEach(p => document.getElementById(p).style.display = p === id ? 'block' : 'none');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function showPaymentPage()  { showPage('payment-page'); }
+  function showReceiptPage()  { showPage('receipt-page'); }
+  function handleCancel() { window.history.length > 1 ? window.history.back() : window.close(); }
+
+  // ── Copy account number ─────────────────────────────────────────────────────
+  function copyNumber() {
+    const btn = document.getElementById('copy-btn');
+    navigator.clipboard.writeText('9012834275').then(() => {
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+        btn.classList.remove('copied');
+      }, 2500);
+    });
+  }
+
+  // ── File select ─────────────────────────────────────────────────────────────
+  let selectedFile = null;
+
+  const fileInput = document.getElementById('receipt-file');
+  fileInput.addEventListener('change', handleFileSelect);
+
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File too large — please upload a screenshot under 5 MB.');
+      return;
+    }
+    selectedFile = file;
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = document.getElementById('preview-img');
+      img.src = ev.target.result;
+      img.style.display = 'block';
+      document.getElementById('upload-placeholder').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+
+    document.getElementById('verify-btn').disabled = false;
+  }
+
+  // Drag-and-drop
+  const zone = document.getElementById('upload-zone');
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', ()  => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag');
+    const f = e.dataTransfer.files[0];
+    if (!f) return;
+    const dt = new DataTransfer();
+    dt.items.add(f);
+    fileInput.files = dt.files;
+    handleFileSelect({ target: { files: [f] } });
+  });
+
+  // ── Submit receipt ──────────────────────────────────────────────────────────
+  async function submitReceipt() {
+    if (!selectedFile) {
+      alert('Please select a screenshot first.');
+      return;
+    }
+
+    const token = getToken();
+    if (!token) {
+      showResult('error',
+        'Not Signed In',
+        'Please open this page from your StudyFlow app, or add ?token=YOUR_TOKEN to the URL.',
+        null);
+      return;
+    }
+
+    const btn = document.getElementById('verify-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Verifying with AI&hellip;';
+
+    try {
+      const form = new FormData();
+      form.append('receipt', selectedFile, selectedFile.name);
+
+      const res = await fetch('/api/v1/subscriptions/submit-receipt', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: form
+      });
+
+      let data;
+      try { data = await res.json(); } catch { throw new Error('Server returned an invalid response.'); }
+
+      if (data.success) {
+        showResult('success',
+          'Upgrade Successful!',
+          data.message || 'Your account has been upgraded to Premium.',
+          data.data?.detected || null);
+      } else {
+        showResult('error',
+          'Verification Failed',
+          data.reason || data.message || 'We could not verify your receipt.',
+          data.detected || null);
+      }
+    } catch (err) {
+      showResult('error',
+        'Something Went Wrong',
+        err.message || 'Could not reach the server. Please check your connection.',
+        null);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Verify Receipt';
+    }
+  }
+
+  // ── Result ──────────────────────────────────────────────────────────────────
+  function showResult(type, title, msg, detected) {
+    showPage('result-page');
+
+    const wrap = document.getElementById('result-icon-wrap');
+    const ico  = document.getElementById('result-icon-fa');
+    wrap.className = 'result-icon-wrap ' + type;
+    ico.className  = type === 'success'
+      ? 'fa-solid fa-circle-check'
+      : 'fa-solid fa-circle-xmark';
+
+    document.getElementById('result-title').textContent = title;
+    document.getElementById('result-msg').textContent   = msg;
+
+    const box = document.getElementById('detected-box');
+    if (detected && (detected.name || detected.amount || detected.bank)) {
+      box.style.display = 'block';
+      document.getElementById('det-name').textContent   = detected.name   || 'Not detected';
+      document.getElementById('det-bank').textContent   = detected.bank   || 'Not detected';
+      document.getElementById('det-amount').textContent = detected.amount || 'Not detected';
+    } else {
+      box.style.display = 'none';
+    }
+
+    const actions = document.getElementById('result-actions');
+    if (type === 'success') {
+      actions.innerHTML = `
+        <button class="btn btn-primary" onclick="handleCancel()">
+          <i class="fa-solid fa-arrow-right"></i> Back to StudyFlow
+        </button>`;
+    } else {
+      actions.innerHTML = `
+        <button class="btn btn-primary" onclick="showReceiptPage()">
+          <i class="fa-solid fa-rotate-right"></i> Try Again
+        </button>
+        <button class="btn btn-ghost" onclick="showPaymentPage()">
+          <i class="fa-solid fa-arrow-left"></i> Back to Payment Details
+        </button>`;
+    }
+  }
+</script>
+</body>
+</html>
