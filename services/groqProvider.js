@@ -3,68 +3,78 @@ import { GroqAPIError } from '../utils/errors.js';
 
 class GroqProvider {
   constructor() {
-    this._freeClient = null;
+    this._freeClients    = null;
     this._premiumClients = null;
-    this.currentIndex = 0;
+    this._freeIndex      = 0;
+    this._premiumIndex   = 0;
   }
 
-  get freeClient() {
-    if (!this._freeClient) {
-      const key = process.env.GROQ_API_KEY_FREE;
-      if (!key) throw new GroqAPIError('GROQ_API_KEY_FREE is not configured');
-      this._freeClient = new Groq({ apiKey: key });
+  _buildClients(envMulti, envSingle) {
+    const multi = process.env[envMulti]?.split(',').map(k => k.trim()).filter(Boolean) || [];
+    if (multi.length) return multi.map(k => new Groq({ apiKey: k }));
+
+    const single = process.env[envSingle]?.trim();
+    if (single) return [new Groq({ apiKey: single })];
+
+    return [];
+  }
+
+  get freeClients() {
+    if (!this._freeClients) {
+      this._freeClients = this._buildClients('GROQ_API_KEYS_FREE', 'GROQ_API_KEY_FREE');
+      if (!this._freeClients.length) throw new GroqAPIError('No free-tier Groq keys configured (GROQ_API_KEYS_FREE or GROQ_API_KEY_FREE)');
     }
-    return this._freeClient;
+    return this._freeClients;
   }
 
   get premiumClients() {
     if (!this._premiumClients) {
-      const keys = process.env.GROQ_API_KEYS_PREMIUM?.split(',').filter(Boolean) || [];
-      this._premiumClients = keys.map((k) => new Groq({ apiKey: k }));
+      this._premiumClients = this._buildClients('GROQ_API_KEYS_PREMIUM', null);
     }
     return this._premiumClients;
   }
 
-  getClient(role) {
-    if (role !== 'premium' || this.premiumClients.length === 0) {
-      return this.freeClient;
+  _nextClient(role) {
+    if (role === 'premium' && this.premiumClients.length) {
+      const client = this.premiumClients[this._premiumIndex];
+      this._premiumIndex = (this._premiumIndex + 1) % this.premiumClients.length;
+      return client;
     }
-    const client = this.premiumClients[this.currentIndex];
-    this.currentIndex = (this.currentIndex + 1) % this.premiumClients.length;
+    const client = this.freeClients[this._freeIndex];
+    this._freeIndex = (this._freeIndex + 1) % this.freeClients.length;
     return client;
   }
 
   async chatCompletion(role, messages, options = {}) {
-    const maxRetries = role === 'premium' && this.premiumClients.length > 0
-      ? this.premiumClients.length
-      : 1;
-    let attempts = 0;
+    const pool = role === 'premium' && this.premiumClients.length
+      ? this.premiumClients
+      : this.freeClients;
+
+    const maxAttempts = pool.length;
     let lastError;
 
-    while (attempts < maxRetries) {
-      const client = this.getClient(role);
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const client = this._nextClient(role);
       try {
         const { model, temperature, max_tokens, ...rest } = options;
         const response = await client.chat.completions.create({
-          model: model || 'llama-3.3-70b-versatile',
+          model:       model        || 'llama-3.3-70b-versatile',
           messages,
-          temperature: temperature ?? 0.7,
-          max_tokens: max_tokens || 1024,
+          temperature: temperature  ?? 0.7,
+          max_tokens:  max_tokens   || 1024,
           ...rest
         });
         return response.choices[0].message.content;
       } catch (error) {
         lastError = error;
-        attempts++;
-        if (role !== 'premium') break;
-        if (attempts < maxRetries) {
-          console.warn(`Groq key failed, switching to next...`);
+        if (attempt < maxAttempts - 1) {
+          console.warn(`Groq key [${role}] attempt ${attempt + 1} failed, trying next key...`);
         }
       }
     }
 
     throw new GroqAPIError(
-      `Groq API call failed after ${attempts} attempt(s): ${lastError?.message}`
+      `Groq API call failed after ${maxAttempts} attempt(s): ${lastError?.message}`
     );
   }
 }
