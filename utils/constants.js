@@ -1,8 +1,8 @@
 export const USAGE_LIMITS = {
   FREE: {
-    summaries: 10,
-    teacher: 20,
-    topic: 5,
-    ocr: 3
+    summaries: 5,
+    teacher:   5,
+    topic:     5,
+    ocr:       5
   }
 };
