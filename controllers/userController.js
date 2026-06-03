@@ -6,6 +6,7 @@ import OCRUpload from '../models/OCRUpload.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { sendSuccess } from '../utils/responseHelper.js';
 import cloudinaryService from '../services/cloudinaryService.js';
+import { USAGE_LIMITS } from '../utils/constants.js';
 
 export const getProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
@@ -84,7 +85,7 @@ export const getUsageStats = asyncHandler(async (req, res) => {
     usageStats: user.usageStats,
     limits: user.role === 'premium'
       ? { summaries: 'Unlimited', teacher: 'Unlimited', topic: 'Unlimited', ocr: 'Unlimited' }
-      : { summaries: 10, teacher: 20, topic: 5, ocr: 3 }
+      : USAGE_LIMITS.FREE
   });
 });
 
