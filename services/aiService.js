@@ -80,7 +80,8 @@ export const generateQuiz = async (text, questionCount = 5, role) => {
       role: 'system',
       content: `You are a quiz-maker for StudyFlow. From the provided text, generate a multiple-choice quiz with exactly ${questionCount} questions.
 Return a valid JSON array with no markdown, no code fences — just the raw JSON.
-Format: [{"question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A", "explanation": "..."}]`
+Format: [{"question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A. <full option text here>", "explanation": "..."}]
+IMPORTANT: correctAnswer must be the FULL option string exactly as it appears in the options array (e.g. "A. Meiosis"), NOT just the letter.`
     },
     { role: 'user', content: text }
   ];
