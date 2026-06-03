@@ -2,14 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import routes from './routes/index.js';
 import errorHandler from './middleware/errorHandler.js';
 import { globalLimiter } from './middleware/rateLimiter.js';
+import passport from './config/passport.js';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname  = path.dirname(__filename);
 
 const app = express();
 app.set('trust proxy', 1);
@@ -37,6 +39,23 @@ if (process.env.NODE_ENV !== 'test') {
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Short-lived session — only used during the OAuth handshake (Google / GitHub).
+// JWTs are the actual auth mechanism; sessions are never used after the redirect.
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'studyflow_session_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge:   10 * 60 * 1000,
+    secure:   process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+  }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(globalLimiter);
 
