@@ -8,6 +8,7 @@ import videoRoutes from './videoRoutes.js';
 import userRoutes from './userRoutes.js';
 import subscriptionRoutes from './subscriptionRoutes.js';
 import studyToolsRoutes from './studyToolsRoutes.js';
+import adminRoutes from './adminRoutes.js';
 
 const router = Router();
 
@@ -29,5 +30,6 @@ router.use('/ocr', ocrRoutes);
 router.use('/videos', videoRoutes);
 router.use('/subscriptions', subscriptionRoutes);
 router.use('/study-tools', studyToolsRoutes);
+router.use('/admin',      adminRoutes);
 
 export default router;
