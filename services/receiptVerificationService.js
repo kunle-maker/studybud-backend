@@ -4,15 +4,42 @@ const EXPECTED_AMOUNT = 1000;
 const EXPECTED_RECIPIENT_NAME = 'Ayodele Ganiyu';
 const EXPECTED_BANK = 'SmartCash';
 
+// Track which key we're currently using
+let currentKeyIndex = 0;
+let keysList = [];
+
 const getClient = () => {
-  const key = process.env.GROQ_API_KEYS_FREE;
-  if (!key) throw new Error('GROQ_API_KEY_FREE is not configured');
-  return new Groq({ apiKey: key });
+  const keysEnv = process.env.GROQ_API_KEYS_FREE;
+  if (!keysEnv) throw new Error('GROQ_API_KEYS_FREE is not configured');
+  keysList = keysEnv.split(',').map(k => k.trim());
+  const currentKey = keysList[currentKeyIndex % keysList.length];
+  return new Groq({ apiKey: currentKey });
 };
 
-export const verifyPaymentReceipt = async (imageBase64, mimeType = 'image/jpeg') => {
-  const client = getClient();
+const rotateToNextKey = () => {
+  currentKeyIndex++;
+  console.log(`Rotating to next Groq API key (index: ${currentKeyIndex})`);
+};
 
+const tryWithAllKeys = async (imageBase64, mimeType, retryCount = 0) => {
+  if (retryCount >= keysList.length) {
+    throw new Error('All Groq API keys have failed');
+  }
+  
+  const client = getClient();
+  
+  try {
+    return await makeVerificationRequest(client, imageBase64, mimeType);
+  } catch (error) {
+    if (error.message?.includes('API Key') || error.status === 401) {
+      rotateToNextKey();
+      return tryWithAllKeys(imageBase64, mimeType, retryCount + 1);
+    }
+    throw error;
+  }
+};
+
+const makeVerificationRequest = async (client, imageBase64, mimeType) => {
   const now = new Date();
   const todayStr = now.toLocaleDateString('en-GB', {
     day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Africa/Lagos'
@@ -88,4 +115,13 @@ Respond ONLY with a valid JSON object — no explanation, no markdown, just raw 
     detected_date: result.detected_date || null,
     date_valid: result.date_valid !== false
   };
+};
+
+export const verifyPaymentReceipt = async (imageBase64, mimeType = 'image/jpeg') => {
+  const keysEnv = process.env.GROQ_API_KEYS_FREE;
+  if (!keysEnv) throw new Error('GROQ_API_KEYS_FREE is not configured');
+  keysList = keysEnv.split(',').map(k => k.trim());
+  currentKeyIndex = 0;
+  
+  return tryWithAllKeys(imageBase64, mimeType);
 };
