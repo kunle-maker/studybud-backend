@@ -5,7 +5,7 @@ const EXPECTED_RECIPIENT_NAME = 'Ayodele Ganiyu';
 const EXPECTED_BANK = 'SmartCash';
 
 const getClient = () => {
-  const key = process.env.GROQ_API_KEY_FREE;
+  const key = process.env.GROQ_API_KEYS_FREE;
   if (!key) throw new Error('GROQ_API_KEY_FREE is not configured');
   return new Groq({ apiKey: key });
 };
