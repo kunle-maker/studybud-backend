@@ -13,7 +13,9 @@ const userSchema = new mongoose.Schema({
   githubId:       { type: String, unique: true, sparse: true },
   telegramId:     { type: String, unique: true, sparse: true },
 
-  role: { type: String, enum: ['free', 'premium'], default: 'free' },
+  role:           { type: String, enum: ['free', 'premium'], default: 'free' },
+  isAdmin:        { type: Boolean, default: false },
+  premiumUntil:   { type: Date, default: null },
 
   usageStats: {
     summariesToday:          { type: Number, default: 0 },
