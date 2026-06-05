@@ -24,8 +24,8 @@ export const getPaymentDetails = asyncHandler(async (req, res) => {
     instructions: [
       'Transfer exactly ₦1,000 to the account above',
       'Take a clear screenshot of your transfer receipt',
-      'Click "I have paid" and upload the screenshot',
-      'Your account will be upgraded instantly once verified'
+      'Upload the screenshot — AI verifies it instantly',
+      'Receipt must be from today — old receipts will be rejected'
     ]
   });
 });
@@ -68,16 +68,24 @@ export const submitReceipt = asyncHandler(async (req, res) => {
       verificationNote: verification.reason
     });
 
+    let message = 'Receipt could not be verified.';
+    if (verification.date_valid === false) {
+      message = 'Old receipt detected. Please upload a receipt from today\'s transaction only.';
+    }
+
     return res.status(400).json({
       success: false,
-      message: 'Receipt could not be verified.',
+      message,
       reason: verification.reason,
       detected: {
-        name: verification.detected_name,
+        name:   verification.detected_name,
         amount: verification.detected_amount,
-        bank: verification.detected_bank
+        bank:   verification.detected_bank,
+        date:   verification.detected_date
       },
-      hint: 'Make sure your screenshot clearly shows the recipient name (Ayodele Ganiyu), SmartCash bank, and the amount ₦1,000.'
+      hint: verification.date_valid === false
+        ? 'We only accept receipts from today. Old or recycled receipts are rejected automatically.'
+        : 'Make sure your screenshot clearly shows: Ayodele Ganiyu, SmartCash bank, ₦1,000, and today\'s date.'
     });
   }
 
@@ -103,9 +111,10 @@ export const submitReceipt = asyncHandler(async (req, res) => {
     startDate: now,
     endDate,
     detected: {
-      name: verification.detected_name,
+      name:   verification.detected_name,
       amount: verification.detected_amount,
-      bank: verification.detected_bank
+      bank:   verification.detected_bank,
+      date:   verification.detected_date
     }
   }, 200, '🎉 Payment verified! Your account has been upgraded to Premium.');
 });
