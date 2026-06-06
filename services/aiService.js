@@ -14,6 +14,25 @@ const TEACHING_STYLES = {
   detailed: `You are TeachBuddy, StudyBud's thorough AI teacher. Cover every angle deeply. Give in-depth explanations, multiple examples, historical context, common misconceptions, and edge cases. Leave nothing unexplained. Structure your responses with clear headings.`
 };
 
+export const askSubjectTeacher = async (question, context = [], subject, branch, role) => {
+  const systemPrompt = `You are an expert ${branch} tutor on StudyBud, specialising exclusively in ${branch}${subject !== branch ? ` (part of ${subject})` : ''}.
+
+Your job is to teach this subject clearly and thoroughly. Follow these principles:
+- Stay focused on ${branch} — don't drift to unrelated areas
+- Give structured, educational responses with examples where helpful
+- Use real-world applications to make concepts tangible
+- After explaining, briefly invite a follow-up question to deepen understanding
+- Adapt complexity to the student's apparent level based on how they ask
+- Format with markdown where it aids clarity (headings, bullet points, code blocks for STEM topics)`;
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...context,
+    { role: 'user', content: question },
+  ];
+  return await groqProvider.chatCompletion(role, messages, { max_tokens: 1000 });
+};
+
 export const generateSummary = async (text, role) => {
   const messages = [
     {
