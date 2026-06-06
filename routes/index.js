@@ -9,6 +9,7 @@ import userRoutes from './userRoutes.js';
 import subscriptionRoutes from './subscriptionRoutes.js';
 import studyToolsRoutes from './studyToolsRoutes.js';
 import adminRoutes from './adminRoutes.js';
+import subjectRoutes from './subjectRoutes.js';
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use('/videos', videoRoutes);
 router.use('/subscriptions', subscriptionRoutes);
 router.use('/study-tools', studyToolsRoutes);
 router.use('/admin',      adminRoutes);
+router.use('/subjects',   subjectRoutes);
 
 export default router;
