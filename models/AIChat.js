@@ -13,7 +13,9 @@ const aiChatSchema = new mongoose.Schema({
     content: String,
     timestamp: { type: Date, default: Date.now }
   }],
-  chatType: { type: String, enum: ['teacher', 'topic_explanation'], default: 'teacher' }
+  chatType: { type: String, enum: ['teacher', 'topic_explanation', 'subject'], default: 'teacher' },
+  subject:  { type: String, default: '' },
+  branch:   { type: String, default: '' }
 }, { timestamps: true });
 
 aiChatSchema.index({ user: 1, chatType: 1, updatedAt: -1 });
