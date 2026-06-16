@@ -45,7 +45,7 @@ Carefully examine this payment/transfer receipt image and check ALL of the follo
 
 1. Is the recipient name "Ayodele Ganiyu" (or very close variation like "Ayodele G" or "A. Ganiyu")?
 2. Is the bank/wallet "SmartCash" (or "Smart Cash")?
-3. Is the amount exactly ₦1,000 (or 1000 NGN)?
+3. Is the amount exactly ₦200 (or 200 NGN)?
 4. Does it look like a genuine transfer receipt (not a screenshot of a blank form or edited image)?
 5. Is the receipt date today (${todayStr}) or at most 1 day old? Receipts older than 1 day have date_valid=false.
 6. Is there a transaction reference ID, receipt number, session ID, or any unique transaction code visible anywhere on the receipt? Extract it exactly as shown — include all digits and letters.
