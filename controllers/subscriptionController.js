@@ -13,7 +13,7 @@ export const getPaymentDetails = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'You are already on the premium plan.' });
   }
   sendSuccess(res, {
-    amount: 1000,
+    amount: 200,
     currency: 'NGN',
     bank: {
       name: 'SmartCash',
@@ -21,9 +21,9 @@ export const getPaymentDetails = asyncHandler(async (req, res) => {
       accountNumber: '9012834275'
     },
     instructions: [
-      'Transfer exactly ₦1,000 to the account above',
+      'Transfer exactly ₦200 to the account above',
       'Take a clear screenshot of your transfer receipt',
-      'Upload the screenshot — AI verifies it instantly',
+      'Upload the screenshot — We verify instantly',
       'Receipt must be from today — old or reused receipts are rejected'
     ]
   });
