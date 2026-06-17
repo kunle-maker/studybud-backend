@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import passport from 'passport';
-import { register, login, refreshToken, logout, getProfile } from '../controllers/authController.js';
+import { register, login, refreshToken, logout, getProfile, adminLogin } from '../controllers/authController.js';
 import { googleCallback, githubCallback, telegramAuth } from '../controllers/oauthController.js';
 import { protect } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
@@ -53,5 +53,12 @@ router.get('/github/callback',
 
 // ── Telegram Login Widget ───────────────────────────────────────────────────
 router.post('/telegram', authLimiter, telegramAuth);
+
+// ── Admin credential login ───────────────────────────────────────────────────
+router.post('/admin-login', authLimiter, [
+  body('username').notEmpty().withMessage('Username is required'),
+  body('password').notEmpty().withMessage('Password is required'),
+  validate
+], adminLogin);
 
 export default router;
