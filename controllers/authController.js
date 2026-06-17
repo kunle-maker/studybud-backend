@@ -85,3 +85,40 @@ export const getProfile = asyncHandler(async (req, res) => {
     }
   });
 });
+
+export const adminLogin = asyncHandler(async (req, res) => {
+  const { username, password } = req.body;
+
+  const ADMIN_USERNAME = 'kunle2012';
+  const ADMIN_PASSWORD = 'may172012.';
+
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
+  }
+
+  const admin = await User.findOne({ isAdmin: true });
+  if (!admin) {
+    return res.status(404).json({ success: false, message: 'Admin account not found. Please seed admin first.' });
+  }
+
+  const tokens = generateTokens(admin._id);
+  admin.refreshToken = tokens.refreshToken;
+  await admin.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    success: true,
+    message: 'Admin login successful',
+    data: {
+      user: {
+        id: admin._id,
+        _id: admin._id,
+        email: admin.email,
+        name: admin.name,
+        role: admin.role,
+        isAdmin: admin.isAdmin,
+        profilePicture: admin.profilePicture || null,
+      },
+      ...tokens
+    }
+  });
+});
