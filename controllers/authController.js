@@ -87,18 +87,30 @@ export const getProfile = asyncHandler(async (req, res) => {
 });
 
 export const adminLogin = asyncHandler(async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  const ADMIN_USERNAME = 'kunle2012';
-  const ADMIN_PASSWORD = 'may172012.';
+  // Credentials are validated against the env-var-seeded admin account.
+  // Never hardcode credentials here — set ADMIN_SEED_EMAIL / ADMIN_SEED_PASSWORD
+  // in your deployment secrets and run ensureAdminExists() on startup.
+  const seedEmail    = process.env.ADMIN_SEED_EMAIL;
+  const seedPassword = process.env.ADMIN_SEED_PASSWORD;
 
-  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+  if (!seedEmail || !seedPassword) {
+    return res.status(503).json({ success: false, message: 'Admin account not configured on this server.' });
+  }
+
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'email and password are required.' });
+  }
+
+  const admin = await User.findOne({ email: email.toLowerCase(), isAdmin: true }).select('+password');
+  if (!admin) {
     return res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
   }
 
-  const admin = await User.findOne({ isAdmin: true });
-  if (!admin) {
-    return res.status(404).json({ success: false, message: 'Admin account not found. Please seed admin first.' });
+  const valid = await admin.comparePassword(password);
+  if (!valid) {
+    return res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
   }
 
   const tokens = generateTokens(admin._id);
@@ -110,12 +122,12 @@ export const adminLogin = asyncHandler(async (req, res) => {
     message: 'Admin login successful',
     data: {
       user: {
-        id: admin._id,
-        _id: admin._id,
-        email: admin.email,
-        name: admin.name,
-        role: admin.role,
-        isAdmin: admin.isAdmin,
+        id:             admin._id,
+        _id:            admin._id,
+        email:          admin.email,
+        name:           admin.name,
+        role:           admin.role,
+        isAdmin:        admin.isAdmin,
         profilePicture: admin.profilePicture || null,
       },
       ...tokens

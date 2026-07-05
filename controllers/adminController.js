@@ -1,7 +1,9 @@
 import User from '../models/User.js';
 import Subscription from '../models/Subscription.js';
 import asyncHandler from '../utils/asyncHandler.js';
-import { sendSuccess } from '../utils/responseHelper.js';
+import { sendSuccess, sendPaginated } from '../utils/responseHelper.js';
+
+// ─── Dashboard ───────────────────────────────────────────────────────────────
 
 export const getAdminDashboard = asyncHandler(async (req, res) => {
   const [
@@ -26,6 +28,8 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
     recentStaggering
   });
 });
+
+// ─── Staggering (receipt review) ─────────────────────────────────────────────
 
 export const getStaggeringCases = asyncHandler(async (req, res) => {
   const page  = parseInt(req.query.page)  || 1;
@@ -86,6 +90,8 @@ export const rejectStaggering = asyncHandler(async (req, res) => {
   sendSuccess(res, { subscriptionId: sub._id }, 200, 'Staggering premium rejected. User downgraded to free.');
 });
 
+// ─── Premium user management ──────────────────────────────────────────────────
+
 export const getAllPremiumUsers = asyncHandler(async (req, res) => {
   const page  = parseInt(req.query.page)  || 1;
   const limit = parseInt(req.query.limit) || 30;
@@ -116,4 +122,91 @@ export const revokeUserPremium = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(user._id, { role: 'free' });
 
   sendSuccess(res, {}, 200, `Premium revoked for ${user.name}.`);
+});
+
+// ─── User management (new) ────────────────────────────────────────────────────
+
+/**
+ * GET /api/v1/admin/users
+ * List all users with search + role filter + pagination.
+ * Query: ?page=1&limit=30&role=free|premium&search=<name or email>
+ */
+export const getAllUsers = asyncHandler(async (req, res) => {
+  const page   = Math.max(1, parseInt(req.query.page)  || 1);
+  const limit  = Math.min(100, parseInt(req.query.limit) || 30);
+  const skip   = (page - 1) * limit;
+
+  const filter = {};
+  if (req.query.role)   filter.role  = req.query.role;
+  if (req.query.search) {
+    const re = new RegExp(req.query.search.trim(), 'i');
+    filter.$or = [{ name: re }, { email: re }];
+  }
+
+  const [users, total] = await Promise.all([
+    User.find(filter)
+      .sort('-createdAt')
+      .skip(skip)
+      .limit(limit)
+      .select('name email profilePicture role authProvider isAdmin premiumUntil createdAt usageStats'),
+    User.countDocuments(filter),
+  ]);
+
+  sendPaginated(res, users, total, page, limit);
+});
+
+/**
+ * GET /api/v1/admin/users/:userId
+ * Get a single user's full profile + subscription history.
+ */
+export const getUserDetail = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.userId)
+    .select('name email profilePicture role authProvider isAdmin premiumUntil createdAt usageStats');
+  if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+  const subscriptions = await Subscription.find({ user: user._id })
+    .sort('-createdAt')
+    .limit(10)
+    .lean();
+
+  sendSuccess(res, { user, subscriptions });
+});
+
+/**
+ * POST /api/v1/admin/users/:userId/grant-premium
+ * Manually grant premium to any user for a given number of days.
+ * Body: { days }  (default 30)
+ */
+export const grantPremium = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.userId);
+  if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+  const days = Math.max(1, parseInt(req.body.days) || 30);
+  const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+
+  user.role         = 'premium';
+  user.premiumUntil = expiresAt;
+  await user.save({ validateBeforeSave: false });
+
+  sendSuccess(res, { userId: user._id, role: user.role, premiumUntil: user.premiumUntil },
+    200, `Premium granted to ${user.name} for ${days} day(s).`);
+});
+
+/**
+ * DELETE /api/v1/admin/users/:userId
+ * Permanently delete a user and their active subscriptions.
+ * Cannot delete another admin account.
+ */
+export const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.userId);
+  if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+  if (user.isAdmin) {
+    return res.status(403).json({ success: false, message: 'Cannot delete an admin account.' });
+  }
+
+  await Subscription.deleteMany({ user: user._id });
+  await user.deleteOne();
+
+  sendSuccess(res, {}, 200, `User ${user.email} deleted.`);
 });
