@@ -10,6 +10,8 @@ import subscriptionRoutes from './subscriptionRoutes.js';
 import studyToolsRoutes from './studyToolsRoutes.js';
 import adminRoutes from './adminRoutes.js';
 import subjectRoutes from './subjectRoutes.js';
+import roadmapRoutes from './roadmapRoutes.js';
+import assignmentRoutes from './assignmentRoutes.js';
 
 const router = Router();
 
@@ -22,16 +24,18 @@ router.get('/health', (req, res) => {
   });
 });
 
-router.use('/auth', authRoutes);
-router.use('/users', userRoutes);
-router.use('/summaries', summaryRoutes);
-router.use('/teacher', teacherRoutes);
-router.use('/topics', topicRoutes);
-router.use('/ocr', ocrRoutes);
-router.use('/videos', videoRoutes);
+router.use('/auth',          authRoutes);
+router.use('/users',         userRoutes);
+router.use('/summaries',     summaryRoutes);
+router.use('/teacher',       teacherRoutes);
+router.use('/topics',        topicRoutes);
+router.use('/ocr',           ocrRoutes);
+router.use('/videos',        videoRoutes);
 router.use('/subscriptions', subscriptionRoutes);
-router.use('/study-tools', studyToolsRoutes);
-router.use('/admin',      adminRoutes);
-router.use('/subjects',   subjectRoutes);
+router.use('/study-tools',   studyToolsRoutes);
+router.use('/admin',         adminRoutes);
+router.use('/subjects',      subjectRoutes);
+router.use('/roadmaps',      roadmapRoutes);
+router.use('/assignments',   assignmentRoutes);
 
 export default router;
