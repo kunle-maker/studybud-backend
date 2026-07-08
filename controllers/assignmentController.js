@@ -48,16 +48,22 @@ function assertOwner(assignment, userId) {
  * Create a new assignment.
  */
 export const createAssignment = asyncHandler(async (req, res) => {
-  const { title, description, dueDate } = req.body;
+  const { title, description, dueDate, difficulty, educationLevel, numQuestions } = req.body;
   if (!title?.trim()) {
     return res.status(400).json({ success: false, message: 'title is required.' });
   }
 
+  const VALID_DIFFICULTIES = ['easy', 'medium', 'hard'];
+  const VALID_LEVELS = ['primary', 'secondary', 'university', 'professional'];
+
   const assignment = new Assignment({
-    title:       title.trim(),
-    description: description?.trim() || '',
-    creator:     req.user._id,
-    dueDate:     dueDate || null,
+    title:          title.trim(),
+    description:    description?.trim() || '',
+    creator:        req.user._id,
+    dueDate:        dueDate || null,
+    difficulty:     VALID_DIFFICULTIES.includes(difficulty) ? difficulty : 'medium',
+    educationLevel: VALID_LEVELS.includes(educationLevel) ? educationLevel : 'secondary',
+    numQuestions:   Math.min(20, Math.max(1, parseInt(numQuestions) || 5)),
   });
 
   addActivity(assignment, req.user._id, 'created', `Assignment "${assignment.title}" created.`);
@@ -119,6 +125,29 @@ export const getAssignment = asyncHandler(async (req, res) => {
 
   if (!assertAccess(assignment, req.user._id)) {
     return res.status(403).json({ success: false, message: 'Access denied.' });
+  }
+
+  const uid = req.user._id.toString();
+  const isCreator = toId(assignment.creator) === uid;
+
+  // Strip answer keys from questions for non-creators (students must not see answers before submitting)
+  if (!isCreator && assignment.questions?.length) {
+    assignment.questions = assignment.questions.map(q => {
+      const { correctAnswer: _ca, rubric: _rb, ...safe } = q;
+      return safe;
+    });
+  }
+
+  // Strip other users' raw answers; only expose current user's own submissions
+  if (assignment.answers?.length) {
+    assignment.answers = isCreator
+      ? assignment.answers
+      : assignment.answers.filter(a => toId(a.user ?? a.student) === uid);
+  }
+  if (assignment.submissions?.length && !isCreator) {
+    assignment.submissions = assignment.submissions.filter(
+      s => toId(s.user ?? s.student) === uid
+    );
   }
 
   sendSuccess(res, assignment);

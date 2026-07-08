@@ -23,14 +23,20 @@ export const explainTopicHandler = asyncHandler(async (req, res) => {
 });
 
 export const betterExplanation = asyncHandler(async (req, res) => {
-  const { chatId, question } = req.body;
+  const { chatId, question, topic: bodyTopic } = req.body;
   const chat = await AIChat.findOne({ _id: chatId, user: req.user._id });
   if (!chat) throw new Error('Chat not found');
 
   const lastAssistant = chat.messages.filter(m => m.role === 'assistant').pop();
   const previousExplanation = lastAssistant ? lastAssistant.content : '';
 
-  const better = await getBetterExplanation('the topic', previousExplanation, question, req.user.role);
+  // Derive topic from body, or from the stored first user message ("Explain topic: <X>")
+  const firstUserMsg = chat.messages.find(m => m.role === 'user')?.content || '';
+  const topic = bodyTopic?.trim()
+    || firstUserMsg.replace(/^Explain topic:\s*/i, '').slice(0, 120)
+    || 'this topic';
+
+  const better = await getBetterExplanation(topic, previousExplanation, question, req.user.role);
 
   chat.messages.push({ role: 'user', content: question });
   chat.messages.push({ role: 'assistant', content: better });
