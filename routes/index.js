@@ -1,27 +1,23 @@
 import { Router } from 'express';
-import authRoutes from './authRoutes.js';
-import summaryRoutes from './summaryRoutes.js';
-import teacherRoutes from './teacherRoutes.js';
-import topicRoutes from './topicRoutes.js';
-import ocrRoutes from './ocrRoutes.js';
-import videoRoutes from './videoRoutes.js';
-import userRoutes from './userRoutes.js';
+import authRoutes         from './authRoutes.js';
+import summaryRoutes      from './summaryRoutes.js';
+import teacherRoutes      from './teacherRoutes.js';
+import topicRoutes        from './topicRoutes.js';
+import ocrRoutes          from './ocrRoutes.js';
+import videoRoutes        from './videoRoutes.js';
+import userRoutes         from './userRoutes.js';
 import subscriptionRoutes from './subscriptionRoutes.js';
-import studyToolsRoutes from './studyToolsRoutes.js';
-import adminRoutes from './adminRoutes.js';
-import subjectRoutes from './subjectRoutes.js';
-import roadmapRoutes from './roadmapRoutes.js';
-import assignmentRoutes from './assignmentRoutes.js';
+import studyToolsRoutes   from './studyToolsRoutes.js';
+import adminRoutes        from './adminRoutes.js';
+import subjectRoutes      from './subjectRoutes.js';
+import roadmapRoutes      from './roadmapRoutes.js';
+import assignmentRoutes   from './assignmentRoutes.js';
+import notificationRoutes from './notificationRoutes.js';
 
 const router = Router();
 
 router.get('/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'StudyFlow API is running',
-    version: '1.0.0',
-    timestamp: new Date().toISOString()
-  });
+  res.status(200).json({ success: true, message: 'StudyFlow API is running', version: '1.0.0', timestamp: new Date().toISOString() });
 });
 
 router.use('/auth',          authRoutes);
@@ -37,5 +33,6 @@ router.use('/admin',         adminRoutes);
 router.use('/subjects',      subjectRoutes);
 router.use('/roadmaps',      roadmapRoutes);
 router.use('/assignments',   assignmentRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;

@@ -31,25 +31,36 @@ router.post('/refresh', [
 router.post('/logout', protect, logout);
 router.get('/me',     protect, getProfile);
 
-// ── Google OAuth ────────────────────────────────────────────────────────────
-router.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+// ── Google OAuth (only when credentials are configured) ─────────────────────
+const oauthUnavailable = (provider) => (_req, res) =>
+  res.status(501).json({ message: `${provider} OAuth is not configured on this server.` });
 
-router.get('/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: '/auth/error' }),
-  googleCallback
-);
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  router.get('/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
+  router.get('/google/callback',
+    passport.authenticate('google', { session: false, failureRedirect: '/auth/error' }),
+    googleCallback
+  );
+} else {
+  router.get('/google',          oauthUnavailable('Google'));
+  router.get('/google/callback', oauthUnavailable('Google'));
+}
 
-// ── GitHub OAuth ────────────────────────────────────────────────────────────
-router.get('/github',
-  passport.authenticate('github', { scope: ['user:email'] })
-);
-
-router.get('/github/callback',
-  passport.authenticate('github', { session: false, failureRedirect: '/auth/error' }),
-  githubCallback
-);
+// ── GitHub OAuth (only when credentials are configured) ──────────────────────
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  router.get('/github',
+    passport.authenticate('github', { scope: ['user:email'] })
+  );
+  router.get('/github/callback',
+    passport.authenticate('github', { session: false, failureRedirect: '/auth/error' }),
+    githubCallback
+  );
+} else {
+  router.get('/github',          oauthUnavailable('GitHub'));
+  router.get('/github/callback', oauthUnavailable('GitHub'));
+}
 
 // ── Telegram Login Widget ───────────────────────────────────────────────────
 router.post('/telegram', authLimiter, telegramAuth);
