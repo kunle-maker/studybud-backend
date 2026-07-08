@@ -68,7 +68,7 @@ app.use('/pay', express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) =>
   res.json({
-    message: 'StudyFlow API — by Ayokunle',
+    message: 'StudyBud API — by Ayokunle',
     version: '1.0.0',
     paymentPage: '/pay',
     docs: '/api/v1/health'
