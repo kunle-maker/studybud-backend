@@ -27,48 +27,56 @@ async function findOrCreateOAuthUser({ providerId, providerField, email, name, p
   return user;
 }
 
-passport.use(new GoogleStrategy(
-  {
-    clientID:     process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL:  `${process.env.BACKEND_URL}/api/v1/auth/google/callback`
-  },
-  async (_at, _rt, profile, done) => {
-    try {
-      const user = await findOrCreateOAuthUser({
-        providerId:     profile.id,
-        providerField:  'googleId',
-        email:          profile.emails?.[0]?.value,
-        name:           profile.displayName,
-        profilePicture: profile.photos?.[0]?.value,
-        authProvider:   'google'
-      });
-      done(null, user);
-    } catch (err) { done(err); }
-  }
-));
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy(
+    {
+      clientID:     process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL:  `${process.env.BACKEND_URL}/api/v1/auth/google/callback`
+    },
+    async (_at, _rt, profile, done) => {
+      try {
+        const user = await findOrCreateOAuthUser({
+          providerId:     profile.id,
+          providerField:  'googleId',
+          email:          profile.emails?.[0]?.value,
+          name:           profile.displayName,
+          profilePicture: profile.photos?.[0]?.value,
+          authProvider:   'google'
+        });
+        done(null, user);
+      } catch (err) { done(err); }
+    }
+  ));
+} else {
+  console.warn('[passport] GOOGLE_CLIENT_ID not set — Google OAuth disabled');
+}
 
-passport.use(new GitHubStrategy(
-  {
-    clientID:     process.env.GITHUB_CLIENT_ID,
-    clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL:  `${process.env.BACKEND_URL}/api/v1/auth/github/callback`,
-    scope:        ['user:email']
-  },
-  async (_at, _rt, profile, done) => {
-    try {
-      const user = await findOrCreateOAuthUser({
-        providerId:     String(profile.id),
-        providerField:  'githubId',
-        email:          profile.emails?.[0]?.value,
-        name:           profile.displayName || profile.username,
-        profilePicture: profile.photos?.[0]?.value,
-        authProvider:   'github'
-      });
-      done(null, user);
-    } catch (err) { done(err); }
-  }
-));
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  passport.use(new GitHubStrategy(
+    {
+      clientID:     process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      callbackURL:  `${process.env.BACKEND_URL}/api/v1/auth/github/callback`,
+      scope:        ['user:email']
+    },
+    async (_at, _rt, profile, done) => {
+      try {
+        const user = await findOrCreateOAuthUser({
+          providerId:     String(profile.id),
+          providerField:  'githubId',
+          email:          profile.emails?.[0]?.value,
+          name:           profile.displayName || profile.username,
+          profilePicture: profile.photos?.[0]?.value,
+          authProvider:   'github'
+        });
+        done(null, user);
+      } catch (err) { done(err); }
+    }
+  ));
+} else {
+  console.warn('[passport] GITHUB_CLIENT_ID not set — GitHub OAuth disabled');
+}
 
 passport.serializeUser((user, done) => done(null, user._id.toString()));
 passport.deserializeUser(async (id, done) => {
