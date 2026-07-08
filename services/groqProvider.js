@@ -12,10 +12,8 @@ class GroqProvider {
   _buildClients(envMulti, envSingle) {
     const multi = process.env[envMulti]?.split(',').map(k => k.trim()).filter(Boolean) || [];
     if (multi.length) return multi.map(k => new Groq({ apiKey: k }));
-
     const single = process.env[envSingle]?.trim();
     if (single) return [new Groq({ apiKey: single })];
-
     return [];
   }
 
@@ -49,19 +47,17 @@ class GroqProvider {
     const pool = role === 'premium' && this.premiumClients.length
       ? this.premiumClients
       : this.freeClients;
-
     const maxAttempts = pool.length;
     let lastError;
-
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const client = this._nextClient(role);
       try {
         const { model, temperature, max_tokens, ...rest } = options;
         const response = await client.chat.completions.create({
-          model:       model        || 'llama-3.3-70b-versatile',
+          model:       model       || 'llama-3.3-70b-versatile',
           messages,
-          temperature: temperature  ?? 0.7,
-          max_tokens:  max_tokens   || 1024,
+          temperature: temperature ?? 0.7,
+          max_tokens:  max_tokens  || 1024,
           ...rest
         });
         return response.choices[0].message.content;
@@ -72,10 +68,22 @@ class GroqProvider {
         }
       }
     }
+    throw new GroqAPIError(`Groq API call failed after ${maxAttempts} attempt(s): ${lastError?.message}`);
+  }
 
-    throw new GroqAPIError(
-      `Groq API call failed after ${maxAttempts} attempt(s): ${lastError?.message}`
-    );
+  /** Returns an async iterable stream of Groq chat completion chunks. */
+  async streamChatCompletion(role, messages, options = {}) {
+    const client = this._nextClient(role);
+    const { model, temperature, max_tokens, ...rest } = options;
+    const stream = await client.chat.completions.create({
+      model:       model       || 'llama-3.3-70b-versatile',
+      messages,
+      temperature: temperature ?? 0.7,
+      max_tokens:  max_tokens  || 1024,
+      stream:      true,
+      ...rest
+    });
+    return stream;
   }
 }
 
