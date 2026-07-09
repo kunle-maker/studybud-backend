@@ -79,6 +79,39 @@ export const streamAskTeacher = async (question, context = [], role, style = 'de
   return await groqProvider.streamChatCompletion(role, messages, { max_tokens: 1000 });
 };
 
+/* ── Roadmap generation ──────────────────────────────────────────────── */
+
+export const generateRoadmapAI = async (topic, subject, difficulty, role) => {
+  const prompt = `Create a structured learning roadmap for: "${topic}" (subject: ${subject}, difficulty: ${difficulty}).
+
+Return ONLY a valid JSON object — no markdown, no code fences, no explanation. Use exactly this shape:
+{
+  "title": "string — a clear, specific roadmap title",
+  "description": "string — 1-2 sentences describing what learners will achieve",
+  "lessons": [
+    {
+      "title": "string — concise lesson title",
+      "description": "string — 2-3 sentences on what this lesson covers",
+      "estimatedMinutes": number,
+      "difficulty": "beginner" | "intermediate" | "advanced"
+    }
+  ]
+}
+
+Rules:
+- 6 to 10 lessons, in a logical learning sequence from fundamentals to mastery
+- Each lesson should build naturally on the previous
+- estimatedMinutes: realistic per-lesson reading/study time (10–60)
+- Overall difficulty is ${difficulty} — calibrate lesson difficulties accordingly
+- Output pure JSON only — no markdown, no extra text`;
+
+  const messages = [
+    { role: 'system', content: 'You are an expert curriculum designer. Output only valid JSON, no markdown, no code fences, no commentary.' },
+    { role: 'user', content: prompt },
+  ];
+  return await groqProvider.chatCompletion(role, messages, { max_tokens: 2000 });
+};
+
 /* ── Subject teacher ─────────────────────────────────────────────────── */
 
 export const askSubjectTeacher = async (question, context = [], subject, branch, role, knowledgeSnippet = '') => {
