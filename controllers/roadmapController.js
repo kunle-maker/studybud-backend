@@ -2,6 +2,7 @@ import Roadmap from '../models/Roadmap.js';
 import UserProgress from '../models/UserProgress.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { sendSuccess, sendCreated } from '../utils/responseHelper.js';
+import { generateRoadmapAI } from '../services/aiService.js';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -183,6 +184,108 @@ export const myProgress = asyncHandler(async (req, res) => {
     });
 
   sendSuccess(res, result);
+});
+
+// ─── User-facing AI generation ───────────────────────────────────────────────
+
+/**
+ * POST /api/v1/roadmaps/generate
+ * Any authenticated user can call this. Free users are capped at 2 per day.
+ */
+export const generateRoadmapForUser = asyncHandler(async (req, res) => {
+  const { topic, subject, difficulty } = req.body;
+  if (!topic?.trim() || !subject?.trim()) {
+    return res.status(400).json({ success: false, message: 'topic and subject are required.' });
+  }
+
+  // Rate-limit free users: max 2 AI-generated roadmaps per calendar day
+  if (req.user.role !== 'premium') {
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+    const todayCount = await Roadmap.countDocuments({
+      createdBy: req.user._id,
+      createdAt: { $gte: dayStart },
+    });
+    if (todayCount >= 2) {
+      return res.status(429).json({
+        success: false,
+        message: 'Daily limit reached (2 roadmaps/day on free plan). Upgrade to Premium for unlimited.',
+      });
+    }
+  }
+
+  const validDifficulties = ['beginner', 'intermediate', 'advanced'];
+  const safeDifficulty = validDifficulties.includes(difficulty) ? difficulty : 'beginner';
+
+  // Call AI
+  const raw = await generateRoadmapAI(topic.trim(), subject.trim().toLowerCase(), safeDifficulty, req.user.role);
+
+  // Parse JSON — strip any accidental markdown fences
+  let parsed;
+  try {
+    const cleaned = raw.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+    // Find the first '{' and last '}' to extract the JSON object robustly
+    const start = cleaned.indexOf('{');
+    const end   = cleaned.lastIndexOf('}');
+    parsed = JSON.parse(cleaned.slice(start, end + 1));
+  } catch {
+    return res.status(502).json({ success: false, message: 'AI returned an unreadable response. Please try again.' });
+  }
+
+  const rawLessons = Array.isArray(parsed.lessons) ? parsed.lessons : [];
+  const lessons = rawLessons.slice(0, 12).map((l, i) => ({
+    title:            String(l.title || `Lesson ${i + 1}`).slice(0, 120),
+    description:      String(l.description || '').slice(0, 800),
+    estimatedMinutes: Math.max(5, Math.min(120, Number(l.estimatedMinutes) || 20)),
+    difficulty:       validDifficulties.includes(l.difficulty) ? l.difficulty : safeDifficulty,
+    order:            i,
+    prerequisites:    [],
+  }));
+
+  const roadmap = new Roadmap({
+    title:       String(parsed.title || topic).slice(0, 120),
+    subject:     subject.trim().toLowerCase(),
+    description: String(parsed.description || '').slice(0, 500),
+    difficulty:  safeDifficulty,
+    lessons,
+    createdBy:   req.user._id,
+    isPublished: true,
+  });
+
+  // Wire sequential prerequisites so lessons unlock one-by-one
+  for (let i = 1; i < roadmap.lessons.length; i++) {
+    roadmap.lessons[i].prerequisites = [roadmap.lessons[i - 1]._id];
+  }
+
+  await roadmap.save();
+
+  // Post-save verification — catches concurrent requests that both passed the pre-check.
+  // If more than 2 roadmaps now exist for this user today, roll back and reject.
+  if (req.user.role !== 'premium') {
+    const dayStart2 = new Date();
+    dayStart2.setHours(0, 0, 0, 0);
+    const confirmedCount = await Roadmap.countDocuments({
+      createdBy: req.user._id,
+      createdAt: { $gte: dayStart2 },
+    });
+    if (confirmedCount > 2) {
+      await Roadmap.deleteOne({ _id: roadmap._id });
+      return res.status(429).json({
+        success: false,
+        message: 'Daily limit reached (2 roadmaps/day on free plan). Upgrade to Premium for unlimited.',
+      });
+    }
+  }
+
+  sendCreated(res, {
+    _id:          roadmap._id,
+    title:        roadmap.title,
+    subject:      roadmap.subject,
+    description:  roadmap.description,
+    difficulty:   roadmap.difficulty,
+    lessonCount:  roadmap.lessons.length,
+    totalMinutes: roadmap.lessons.reduce((s, l) => s + l.estimatedMinutes, 0),
+  }, 'Roadmap generated successfully.');
 });
 
 // ─── Admin endpoints ─────────────────────────────────────────────────────────
