@@ -17,6 +17,7 @@ import {
 } from '../controllers/assignmentController.js';
 import {
   generateQuestions,
+  regenerateQuestions,
   saveAnswer,
   submitAssignment,
   getGrades,
@@ -44,7 +45,8 @@ router.delete('/:id/comments/:commentId',        deleteComment);
 router.get('/:id/activity',                      getActivity);
 
 // ── AI features ───────────────────────────────────────────────────────────────
-router.post('/:id/generate-questions', generateQuestions);
+router.post('/:id/generate-questions',   generateQuestions);
+router.post('/:id/regenerate-questions', regenerateQuestions);
 router.post('/:id/answers',            saveAnswer);
 router.post('/:id/submit',             submitAssignment);
 router.get('/:id/grades',              getGrades);
