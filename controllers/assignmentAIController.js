@@ -65,6 +65,49 @@ export const generateQuestions = asyncHandler(async (req, res) => {
 });
 
 /**
+ * POST /api/v1/assignments/:id/regenerate-questions
+ * Creator-only. Discards existing AI-generated questions (and any answers/
+ * grades tied to them, since the question set is changing) and generates a
+ * fresh set. Optional body: { difficulty, numQuestions } to change params
+ * before regenerating.
+ */
+export const regenerateQuestions = asyncHandler(async (req, res) => {
+  const assignment = await Assignment.findById(req.params.id);
+  if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
+
+  if (assignment.creator.toString() !== req.user._id.toString()) {
+    return res.status(403).json({ success: false, message: 'Only the creator can regenerate questions.' });
+  }
+
+  const VALID_DIFFICULTIES = ['easy', 'medium', 'hard'];
+  if (req.body?.difficulty && VALID_DIFFICULTIES.includes(req.body.difficulty)) {
+    assignment.difficulty = req.body.difficulty;
+  }
+  if (req.body?.numQuestions) {
+    assignment.numQuestions = Math.min(20, Math.max(1, parseInt(req.body.numQuestions) || assignment.numQuestions));
+  }
+
+  const rawQuestions = await generateAssignmentQuestions(
+    assignment.title,
+    assignment.description,
+    assignment.difficulty,
+    assignment.educationLevel,
+    assignment.numQuestions,
+    req.user.role
+  );
+
+  assignment.questions   = rawQuestions.map((q, i) => ({ ...q, order: i }));
+  assignment.aiGenerated = true;
+  // Old answers/grades no longer correspond to the new question set.
+  assignment.answers     = [];
+  assignment.submissions = [];
+  assignment.activity.push({ actor: req.user._id, action: 'updated', detail: 'Questions regenerated.' });
+
+  await assignment.save();
+  sendSuccess(res, { questions: stripSensitiveFields(assignment.questions) }, 200, 'Questions regenerated.');
+});
+
+/**
  * POST /api/v1/assignments/:id/answers
  * Save or update a single answer for the current user.
  * Body: { questionId, content }
